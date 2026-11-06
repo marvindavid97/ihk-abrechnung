@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Freischalt-Zentrale</title>
+<style>
+:root{--bg:#f2f2f7;--card:#fff;--ink:#111;--muted:#6b6b72;--line:#e3e3e8;--accent:#6c2bd9;--ok:#16794a;--ok-soft:#e3f5ea;--warn:#a15c00;--warn-soft:#fff2db;--err:#b3261e}
+@media (prefers-color-scheme:dark){:root{--bg:#000;--card:#1c1c1e;--ink:#f2f2f2;--muted:#9a9aa1;--line:#2c2c2e;--accent:#a77bff;--ok:#5fd08f;--ok-soft:#0f2a1b;--warn:#ffb648;--warn-soft:#2e2108;--err:#ff6b60}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:0 16px calc(28px + env(safe-area-inset-bottom))}
+header{background:linear-gradient(135deg,#0b5cad,#6c2bd9 60%,#d9367a);color:#fff;margin:0 -16px 16px;padding:calc(18px + env(safe-area-inset-top)) 20px 18px}
+header h1{margin:0;font-size:20px}header p{margin:4px 0 0;opacity:.9;font-size:14px}
+.wrap{max-width:520px;margin:0 auto}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:22px 4px 8px;font-weight:600}
+.card{background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--line)}
+.row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:none}.row span{color:var(--muted)}.row b{text-align:right;overflow-wrap:anywhere}
+label{display:block;margin:10px 0 4px;font-size:14px;color:var(--muted)}
+input,select,textarea{width:100%;font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+textarea{min-height:90px;font:12px ui-monospace,Menlo,monospace}
+button{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:11px 14px;border-radius:12px;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;width:100%;padding:14px;font-size:17px}
+button.link{border:none;background:none;color:var(--accent);padding:6px 0}
+button:disabled{opacity:.5}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.order{display:block;width:100%;text-align:left;margin-bottom:8px;font-weight:400}
+.order b{display:block}.order small{color:var(--muted)}
+.chip{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;margin-left:6px}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}.chip.new{background:var(--warn-soft);color:var(--warn)}
+.msg{margin:10px 0 0;font-size:14px;min-height:20px}.msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
+.token{font:12px ui-monospace,Menlo,monospace;overflow-wrap:anywhere;background:var(--bg);border-radius:10px;padding:10px;margin-top:10px}
+.small{font-size:13px;color:var(--muted)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body><div class="wrap">
+<header><h1>🔑 Freischalt-Zentrale</h1><p>Marvin Software Licensing™ – nur für Marvin</p></header>
+
+<section id="keyBox" hidden>
+  <h2>Einmalig: Lizenzschlüssel laden</h2>
+  <div class="card">
+    <p class="small" style="margin-top:0">Wähle <b>lizenz_private_key.pem</b> (liegt im Ordner <i>IHK_Abrechnung_Extras/werkzeuge</i>) oder füge den Inhalt ein. Der Schlüssel bleibt nur auf diesem Gerät gespeichert.</p>
+    <input type="file" id="keyFile" accept=".pem,text/plain">
+    <label>…oder Inhalt einfügen</label>
+    <textarea id="keyText" placeholder="-----BEGIN PRIVATE KEY-----"></textarea>
+    <div class="btns"><button id="keySave">Schlüssel speichern</button></div>
+    <p class="msg" id="keyMsg"></p>
+  </div>
+</section>
+
+<section id="orderBox" hidden>
+  <h2>Freischaltung</h2>
+  <div class="card">
+    <div class="row"><span>Kunde</span><b id="oName"></b></div>
+    <div class="row"><span>Bestellung</span><b id="oNr"></b></div>
+    <div class="row"><span>Zahlung</span><b id="oPay"></b></div>
+    <div class="row"><span>Bisher gültig</span><b id="oCur"></b></div>
+    <div class="row"><span>Box</span><b id="oBox"></b></div>
+    <label for="oTier">Stufe</label>
+    <select id="oTier">
+      <option value="a">📅 Monats-Abo – 1 Monat (5 €)</option>
+      <option value="s">🥉 Starter – 14 Tage (3 €)</option>
+      <option value="p">🥈 Pro – 6 Monate (15 €)</option>
+      <option value="e">🥇 Enterprise – 1 Jahr (30 €)</option>
+      <option value="u">💎 Marvin Ultimate – für immer (50 €)</option>
+    </select>
+    <div class="row" style="margin-top:8px"><span>Neu gültig bis</span><b id="oNew"></b></div>
+    <p class="small" id="oHint"></p>
+    <button class="primary" id="oSend">✅ Freischalten &amp; an Box senden</button>
+    <p class="msg" id="oMsg"></p>
+    <div id="oToken" hidden><div class="token" id="oTokenTxt"></div><div class="btns"><button id="oCopy">Code kopieren</button></div>
+      <p class="small">Kommt die Freischaltung nicht an (Box länger offline), kann Mario diesen Code in der App unter Einstellungen → Lizenz → „Code eingeben“ einfügen.</p></div>
+  </div>
+</section>
+
+<section id="listBox" hidden>
+  <h2>Bestellungen der letzten Tage</h2>
+  <div id="orders"><p class="small">Lade …</p></div>
+  <div class="btns"><button id="reload">Aktualisieren</button><button id="manualBtn">Von Hand freischalten</button></div>
+  <div class="card" id="manual" hidden style="margin-top:10px">
+    <label>Box-ID (steht in Marios App unter Einstellungen → Lizenz)</label><input id="mBox" placeholder="z. B. A1B2C3D4E5F6" autocapitalize="characters">
+    <label>Name</label><input id="mName" value="Mario">
+    <label>Bisher gültig bis (leer = keine Lizenz)</label><input id="mCur" type="date">
+    <div class="btns"><button id="mGo">Weiter</button></div>
+  </div>
+</section>
+
+<section id="settingsBox" hidden>
+  <h2>Gerät</h2>
+  <div class="card"><p class="small" style="margin:0">Lizenzschlüssel ist auf diesem Gerät gespeichert.</p>
+    <div class="btns"><button id="keyForget">Schlüssel von diesem Gerät entfernen</button></div></div>
+</section>
+</div>
+<script>
+const NTFY="https://ntfy.sh", MARVIN_TOPIC="mvsl-2746351e43e3", FOREVER=4294967295;
+const TIER={a:"Monats-Abo",s:"Starter",p:"Pro",e:"Enterprise",u:"Marvin Ultimate"};
+const $=s=>document.querySelector(s);
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+let key=null, order=null, memPem=null;
+
+// ---------- Schlüssel
+function pemToBuf(pem){const b=atob(pem.replace(/-----[^-]+-----/g,"").replace(/\s+/g,""));const u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u.buffer}
+async function importKey(pem){
+  if(!/BEGIN PRIVATE KEY/.test(pem))throw new Error("Das ist nicht lizenz_private_key.pem (erwartet: BEGIN PRIVATE KEY)");
+  return crypto.subtle.importKey("pkcs8",pemToBuf(pem),{name:"ECDSA",namedCurve:"P-256"},false,["sign"]);
+}
+async function loadKey(){const pem=store.get("lizKey")||memPem;if(!pem)return false;try{key=await importKey(pem);return true}catch(e){return false}}
+$("#keyFile").onchange=async e=>{const f=e.target.files[0];if(f)$("#keyText").value=await f.text()};
+$("#keySave").onclick=async()=>{const pem=$("#keyText").value.trim();
+  try{key=await importKey(pem);if(!store.set("lizKey",pem)){memPem=pem;$("#keyMsg").textContent="Hinweis: Dieser Browser speichert nicht dauerhaft – beim nächsten Mal erneut laden."}
+    show()}catch(e){$("#keyMsg").className="msg err";$("#keyMsg").textContent=e.message}};
+$("#keyForget").onclick=()=>{if(confirm("Schlüssel von diesem Gerät entfernen?")){store.del("lizKey");memPem=null;key=null;show()}};
+
+// ---------- Datum
+const fmt=t=>t===0?"für immer":t===FOREVER?"für immer (Ultimate)":new Date(t*1000).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
+function newBis(tier,cur){
+  if(tier==="u")return 0;
+  const now=Date.now()/1000, base=new Date(((cur&&cur!==FOREVER&&cur>now)?cur:now)*1000);
+  if(tier==="s")base.setDate(base.getDate()+14);
+  else base.setMonth(base.getMonth()+({a:1,p:6,e:12})[tier]);
+  base.setHours(23,59,59,0);return Math.floor(base.getTime()/1000);
+}
+
+// ---------- Bestellung
+function parseHash(h){const p=new URLSearchParams(h.replace(/^#/,""));if(!p.get("c"))return null;
+  return {c:p.get("c").toUpperCase(),t:p.get("t")||"e",b:+(p.get("b")||0),n:p.get("n")||"",z:p.get("z")||"",name:p.get("name")||"Mario"}}
+function openOrder(o){order=o;$("#oName").textContent=o.name;$("#oNr").textContent=o.n?"#"+o.n:"von Hand";
+  $("#oPay").textContent=o.z==="paypal"?"PayPal – Eingang in der PayPal-App prüfen":o.z==="natur"?"in Naturalien – erst Ware prüfen 😄":"–";
+  $("#oCur").textContent=o.b?fmt(o.b):"keine Lizenz (Demo)";$("#oBox").textContent=o.c;
+  $("#oTier").value=TIER[o.t]?o.t:"e";$("#oMsg").textContent="";$("#oToken").hidden=true;$("#oSend").disabled=false;updNew();
+  $("#orderBox").hidden=false;$("#orderBox").scrollIntoView({behavior:"smooth"})}
+function updNew(){const t=$("#oTier").value,b=newBis(t,order.b);$("#oNew").textContent=fmt(b);
+  $("#oHint").textContent=order.b===FOREVER?"Achtung: Mario hat schon eine Lizenz für immer – eine weitere wird abgelehnt.":(order.b&&t!=="u"&&order.b>Date.now()/1000)?"Wird an die bestehende Laufzeit angehängt.":""}
+$("#oTier").onchange=updNew;
+
+const b64url=buf=>btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+async function makeToken(chip,tier,bis,nr){const payload=`IHK1.${chip}.${tier}.${bis}.${nr}`;
+  const sig=await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},key,new TextEncoder().encode(payload));return payload+"."+b64url(sig)}
+$("#oSend").onclick=async()=>{const o=order,t=$("#oTier").value,bis=newBis(t,o.b),nr=o.n||("M"+Math.floor(Math.random()*90000+10000));
+  const m=$("#oMsg");m.className="msg";m.textContent="Signiere …";$("#oSend").disabled=true;
+  try{const tok=await makeToken(o.c,t,bis,nr);$("#oTokenTxt").textContent=tok;$("#oToken").hidden=false;
+    const r=await fetch(`${NTFY}/ihk-lic-${o.c.toLowerCase()}`,{method:"POST",body:tok});
+    if(!r.ok)throw new Error("ntfy HTTP "+r.status);
+    m.className="msg ok";m.textContent=`Gesendet: ${TIER[t]} bis ${fmt(bis)}. Die Box schaltet sich innerhalb von ca. 30 Sekunden frei.`;
+    setTimeout(loadOrders,40000)}
+  catch(e){m.className="msg err";m.textContent="Senden fehlgeschlagen: "+e.message+" – den Code unten Mario schicken.";$("#oSend").disabled=false}};
+$("#oCopy").onclick=async()=>{try{await navigator.clipboard.writeText($("#oTokenTxt").textContent);$("#oCopy").textContent="Kopiert ✓"}catch(e){}};
+
+// ---------- Liste aus ntfy
+async function loadOrders(){const box=$("#orders");
+  try{const r=await fetch(`${NTFY}/${MARVIN_TOPIC}/json?poll=1&since=7d`);const txt=await r.text();
+    const msgs=txt.split("\n").filter(Boolean).map(l=>{try{return JSON.parse(l)}catch(e){return null}}).filter(m=>m&&m.event==="message");
+    const done=new Set();msgs.forEach(m=>{const x=/Bestellung #(\d+)/.exec(m.message||"");if(x&&/Lizenz aktiv/.test(m.title||""))done.add(x[1])});
+    const list=msgs.filter(m=>m.click&&m.click.includes("#c=")).reverse();
+    if(!list.length){box.innerHTML='<p class="small">Keine Bestellungen in den letzten 7 Tagen.</p>';return}
+    box.innerHTML="";list.forEach(m=>{const o=parseHash(m.click.slice(m.click.indexOf("#")));const b=document.createElement("button");b.className="order";
+      const when=new Date(m.time*1000).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+      b.innerHTML=`<b>${esc(o.name)} – ${TIER[o.t]||o.t}<span class="chip ${done.has(o.n)?"ok":"new"}">${done.has(o.n)?"freigeschaltet":"offen"}</span></b><small>#${esc(o.n)} · ${o.z==="paypal"?"PayPal":"Naturalien"} · ${when}</small>`;
+      b.onclick=()=>openOrder(o);box.appendChild(b)})}
+  catch(e){box.innerHTML='<p class="small">Bestellungen konnten nicht geladen werden ('+esc(e.message)+').</p>'}}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+$("#reload").onclick=loadOrders;
+$("#manualBtn").onclick=()=>{$("#manual").hidden=!$("#manual").hidden};
+$("#mGo").onclick=()=>{const c=$("#mBox").value.trim().toUpperCase().replace(/[^0-9A-F]/g,"");if(c.length!==12){alert("Die Box-ID hat 12 Zeichen (0–9, A–F).");return}
+  const d=$("#mCur").value;openOrder({c,t:"a",b:d?Math.floor(new Date(d+"T23:59:59").getTime()/1000):0,n:"",z:"",name:$("#mName").value||"Mario"})};
+
+async function show(){const has=await loadKey();
+  $("#keyBox").hidden=has;$("#listBox").hidden=!has;$("#settingsBox").hidden=!has;
+  if(!has){$("#orderBox").hidden=true;return}
+  const o=parseHash(location.hash);if(o)openOrder(o);loadOrders()}
+window.addEventListener("hashchange",show);
+if(!window.crypto||!crypto.subtle)document.body.innerHTML='<p style="padding:20px">Diese Seite braucht eine sichere Verbindung (https).</p>';else show();
+</script>
+</body>
+</html>
